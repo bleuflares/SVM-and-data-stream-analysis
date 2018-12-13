@@ -1,18 +1,19 @@
 import sys
 from pyspark import SparkConf, SparkContext
+from random import *
 
 #mapper for classifying
 def classifier(pair):
     matmul = 0.0
-    w = pair[2]
-    b = pair[3]
+    new_w = pair[2]
+    new_b = pair[3]
     for i in range(len(w)):
-        matmul += pair[0][i] * w[i]
+        matmul += pair[0][i] * new_w[i]
     delta = []
-    if (matmul + b) * pair[1] < 1.0:
-        for j in range(len(w)):
+    if (matmul + new_b) * pair[1] < 1.0:
+        for j in range(len(new_w)):
             delta.append((j, (-1.0) * pair[1] * pair[0][j]))
-        delta.append((len(w) + 1, (-1.0) * pair[1]))
+        delta.append((len(new_w), (-1.0) * pair[1]))
     else:
         for j in range(len(w) + 1):
             delta.append((j, 0.0))
@@ -21,12 +22,11 @@ def classifier(pair):
 #mapper for validation
 def validate(pair):
     matmul = 0.0
-    w = pair[2]
-    b = pair[3]
-    for i in range(len(w)):
-        matmul += pair[0][i] * w[i]
-    print(matmul + b)
-    if (matmul + b) *pair[1] < 1.0:
+    new_w = pair[2]
+    new_b = pair[3]
+    for i in range(len(new_w)):
+        matmul += pair[0][i] * new_w[i]
+    if (matmul + new_b) * pair[1] < 1.0:
         return (1, 1)
     else:
         return (0, 1)
@@ -55,13 +55,15 @@ if __name__ == "__main__":
     for line in input_file2:
         label_points.append(float(line))
 
-    lr = 0.5
-    reg = 10.0
+    lr = 0.05
+    reg = 0.075
     w = [0.0 for i in range(122)]
     b = 0.0
-    minbatch = 100
+    minbatch = 10
 
-    while(True):
+    ws = []
+    conv_counts = []
+    for a in range(20):
         batch_results = []
         for k in range(minbatch):
             fl_pairs = []
@@ -81,33 +83,37 @@ if __name__ == "__main__":
             avg_sum = 0.0
             for j in range(minbatch):
                 avg_sum += batch_results[j][i][1]
-            avg_w.append(avg_sum/ minbatch)
+            avg_w.append(avg_sum / minbatch)
         avg_b = 0.0
         for j in range(minbatch):
             avg_b += batch_results[j][len(w)][1]
         avg_b = avg_b / minbatch
 
+        old_w = w
+        old_b = b
         w = avg_w
         b = avg_b
 
         conv_count = 0
         for i in range(len(w)):
-            if w[i] - avg_w[i] < 0.01:
-                conv_count += 1
-        w = avg_w
-        b = avg_b
+            if w[i] - old_w[i] < 0.01:
+                conv_count += 1                
         if conv_count == len(w):
             break
+        ws.append(ws)
+        conv_counts.append(conv_count)
     
-    #validation                
+    #validation
     val_pairs = []
     for i in range(len(feature_points)):
         val_pairs.append((feature_points[i], label_points[i], w, b))
     features = sc.parallelize(val_pairs)
     scores = features.map(validate).reduceByKey(lambda a, b: a + b)
     score = scores.collect()
+
+    print(ws)
+    print(conv_counts)
     print(score)
     print(float(score[0][1]) / float(score[0][1] + score[1][1]))
-    print(iter_count)
     sc.setLogLevel('WARN')
     sc.stop()
