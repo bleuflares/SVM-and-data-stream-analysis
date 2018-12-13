@@ -10,8 +10,6 @@ if __name__ == "__main__":
 		point = line.split(',')
 		for i in range(len(point)):
 			point[i] = int(point[i])
-		#feature = np.array(point)
-		#feature_points.append(feature)
 		feature_points.append(point)
 
 	label_points = []
@@ -19,12 +17,13 @@ if __name__ == "__main__":
 		label_points.append([int(line)])
 
 	
-
-	lrset = [0.01, 0.05, 0.1, 0.25, 0.5, 1.0]
-	regset = [0.1, 1, 10, 100, 100]
+	logs = []
+	lrset = [0.01, 0.05, 0.075, 0.1, 0.15, 0.2, 0.25, 0.5, 1.0]
+	regset = [0.1, 0.2, 0.3, 0.4, 0.5, 1, 10, 100]
 
 	lropt = lrset[0]
 	regopt = regset[0]
+	optscore = 1.0
 
 	for lr in lrset:
 		for reg in regset:
@@ -56,12 +55,12 @@ if __name__ == "__main__":
 							if matmul[i][0] < train_label_set[i][0]:
 								for j in range(col):
 									delta[j] = delta[j] - train_label_set[i][0] * train_feature_set[i][j]
-								b_delta = b_delta - train_label_set[j][0]
+								b_delta = b_delta - train_label_set[i][0] # used to be j but which is correct???
 						elif train_label_set[i][0] == -1:
 							if matmul[i][0] > train_label_set[i][0]:
 								for j in range(col):
 									delta[j] = delta[j] - train_label_set[i][0] * train_feature_set[i][j]
-								b_delta = b_delta - train_label_set[j][0]
+								b_delta = b_delta - train_label_set[i][0]
 
 					w_old = w
 					b_old = b
@@ -79,13 +78,13 @@ if __name__ == "__main__":
 					if try_label[i][0] * test_label_set[i][0] < 1:
 						diff_count += 1
 
-				score = float(diff_count) / 6000
+			score = float(diff_count) / 6000
 
-				print(lr, reg, score)
-				if score < optscore:
-					optscore = score
-					lropt = lr
-					regopt = reg
+			logs.append((lr, reg, score))
+			print(lr, reg, score)
+			if score < optscore:
+				optscore = score
+				lropt = lr
+				regopt = reg
 	
-	print(lropt, regopt, optscore)
-
+	print(lropt, regopt, 1.0 - optscore)
