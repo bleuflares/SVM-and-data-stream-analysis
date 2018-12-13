@@ -59,11 +59,9 @@ if __name__ == "__main__":
     reg = 10.0
     w = [0.0 for i in range(122)]
     b = 0.0
-    minbatch = 10
+    minbatch = 100
 
-    iter_count = 0
     while(True):
-        iter_count += 1
         batch_results = []
         for k in range(minbatch):
             fl_pairs = []
@@ -113,29 +111,3 @@ if __name__ == "__main__":
     print(iter_count)
     sc.setLogLevel('WARN')
     sc.stop()
-    
-
-
-    """
-        conv_count = 0
-        for i in range(len(w)):
-            if w[i] - avg_w[i] < 0.1:
-                conv_count += 1
-        w = avg_w
-        b = avg_b
-        if conv_count == len(w):
-            break
-        
-    
-    #validation                
-    val_pairs = []
-    for i in range(len(feature_points)):
-        val_pairs.append((feature_points[i], label_points[i], w, b))
-    features = sc.parallelize(val_pairs)
-    scores = features.map(validate).reduceByKey(lambda a, b: a + b)
-    score = scores.collect()
-    print(score)
-    #print(float(score[0][1]) / float(score[0][1] + score[1][1]))
-    sc.setLogLevel('WARN')
-    sc.stop()
-    """
