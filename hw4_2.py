@@ -84,12 +84,10 @@ if __name__ == "__main__":
             for j in range(minbatch):
                 avg_sum += batch_results[j][i][1]
             avg_w.append(w[i] - lr * (w[i] + avg_sum))
-            #avg_w.append(avg_sum / minbatch)
         avg_b = 0.0
         for j in range(minbatch):
             avg_b += batch_results[j][len(w)][1]
         avg_b = (b - lr * (b + avg_sum))
-        #avg_b = avg_b / minbatch
 
         old_w = w
         old_b = b
