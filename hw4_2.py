@@ -33,9 +33,9 @@ def validate(pair):
 
 def gd(pair):
     if pair[0] < len(w):
-        return(pair[0], w[pair[0]] - lr * (w[pair[0]] + reg * pair[1]))
+        return(pair[0], reg * pair[1])
     else:
-        return(pair[0], b - lr * (b + reg * pair[1]))
+        return(pair[0], reg * pair[1])
 
 if __name__ == "__main__":
     conf = SparkConf()
@@ -55,15 +55,15 @@ if __name__ == "__main__":
     for line in input_file2:
         label_points.append(float(line))
 
-    lr = 0.05
-    reg = 0.075
+    lr = 0.1
+    reg = 0.1
     w = [0.0 for i in range(122)]
     b = 0.0
     minbatch = 10
 
     ws = []
     conv_counts = []
-    for a in range(20):
+    for a in range(10):
         batch_results = []
         for k in range(minbatch):
             fl_pairs = []
@@ -83,11 +83,13 @@ if __name__ == "__main__":
             avg_sum = 0.0
             for j in range(minbatch):
                 avg_sum += batch_results[j][i][1]
-            avg_w.append(avg_sum / minbatch)
+            avg_w.append(w[i] - lr * (w[i] + avg_sum))
+            #avg_w.append(avg_sum / minbatch)
         avg_b = 0.0
         for j in range(minbatch):
             avg_b += batch_results[j][len(w)][1]
-        avg_b = avg_b / minbatch
+        avg_b = (b - lr * (b + avg_sum))
+        #avg_b = avg_b / minbatch
 
         old_w = w
         old_b = b
