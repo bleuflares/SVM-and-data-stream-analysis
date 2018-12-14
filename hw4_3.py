@@ -31,6 +31,9 @@ if __name__ == "__main__":
 				i += 1
 				continue
 			else:
-				estimate -= buckets[i - 1][0] / 2
-				break
+				if estimate == 0:
+					break
+				else:
+					estimate -= buckets[i - 1][0] / 2
+					break
 		print(estimate)
